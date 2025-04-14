@@ -17,7 +17,7 @@ else:
 
 print("\n🔎 Running a test search query...\n")
 
-search_keyword = "thực tập tốt nghiệp"
+search_keyword = "Sinh viên muốn chuyển trường cần làm gì?"  
 
 query = {
     "query": {
