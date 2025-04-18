@@ -33,3 +33,5 @@ class BM25Options:
                 }
             },
         )
+
+        self.args = parser.parse_args()

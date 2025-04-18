@@ -1,60 +1,70 @@
 import torch
-import numpy as np
-from typing import List
+from typing import Optional
 from transformers import (
-    AutoTokenizer,
     RobertaPreTrainedModel,
     PretrainedConfig,
     RobertaModel,
 )
-from pyvi.ViTokenizer import tokenize
-
-from utils.torch_utils import preprocessing
+from dense.modules import Pooler, SimilarityFunction
 
 
 class DenseModel(RobertaPreTrainedModel):
+    _keys_to_ignore_on_save = [r"lm_head.decoder.weight", r"lm_head.decoder.bias"]
+    _keys_to_ignore_on_load_missing = [
+        r"position_ids",
+        r"lm_head.decoder.weight",
+        r"lm_head.decoder.bias",
+    ]
+
     def __init__(self, config: PretrainedConfig, args=None):
         super(DenseModel, self).__init__(config)
         self.args = args
         self.config = config
 
-        self.tokenizer = AutoTokenizer.from_pretrained(self.args.tokenizer_name)
+        self.roberta = RobertaModel(config, add_pooling_layer=False)
+        self.pooler = Pooler(self.args.pooler_type)
+        self.sim_func = SimilarityFunction(self.args.sim_func_type)
 
-    def get_output(self, text: List[str]):
-        if isinstance(text, str):
-            text = [text]
+        self.loss = torch.nn.CrossEntropyLoss()
 
-        text = list(map(tokenize, text))
+        self.post_init()
 
-        inputs = self.tokenizer(
-            text, padding=True, truncation=True, return_tensors="pt"
-        ).to(self.args.device)
-
-        with torch.no_grad():
-            outputs = self.roberta(**inputs)
-            pooled_output = self.pooling(inputs["attention_mask"], outputs)
+    def get_output(
+        self,
+        input_ids: Optional[torch.LongTensor] = None,
+        attention_mask: Optional[torch.FloatTensor] = None,
+        **kwargs
+    ):
+        outputs = self.roberta(input_ids, attention_mask=attention_mask)
+        pooled_output = self.pooler(attention_mask, outputs)
 
         return pooled_output
 
     def forward(
         self,
-        query,
-        documents,
+        input_ids: Optional[torch.LongTensor] = None,
+        attention_mask: Optional[torch.FloatTensor] = None,
+        input_ids_positive: Optional[torch.LongTensor] = None,
+        attention_mask_positive: Optional[torch.FloatTensor] = None,
+        **kwargs
     ):
-        query = preprocessing(query, remove_stopwords=True)
+        pooled_output = self.get_output(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+        )
 
-        query_embedding = self.get_output(query)
-        document_embeddings = self.get_output(documents)
+        if not kwargs.get("is_train", ""):
+            return pooled_output
 
-        scores = self.sim_fn(query_embedding, document_embeddings).view(-1).tolist()
+        pooled_output_positive = self.get_output(
+            input_ids=input_ids_positive,
+            attention_mask=attention_mask_positive,
+        )
 
-        ind = np.argsort(scores)[-self.args.top_k_dense :][::-1]
+        sim_scores = self.sim_func(pooled_output, pooled_output_positive)
 
-        ind = [x for x in ind if scores[x] >= self.args.dense_threshold]
+        labels = torch.arange(sim_scores.size(0)).long().to(pooled_output.device)
 
-        if len(ind) == 0:
-            return None
+        loss = self.loss(sim_scores, labels)
 
-        best_documents = list(map(documents.__getitem__, ind))
-
-        return best_documents
+        return loss

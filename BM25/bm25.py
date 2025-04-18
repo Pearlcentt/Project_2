@@ -1,6 +1,6 @@
 from elasticsearch import Elasticsearch
 from typing import List, Dict, Union
-from options import BM25Options
+from BM25.options import BM25Options
 import pandas as pd
 
 
@@ -80,8 +80,8 @@ class BM25:
                 "_id": chunk["id"],  # unique UUID
                 "_source": {
                     "id": chunk["id"],
-                    "chuong": chunk["chuong"],
-                    "dieu": chunk["dieu"],
+                    "chuong": chunk["chapter"],
+                    "dieu": chunk["section"],
                     "content": chunk["content"],
                 },
             }
