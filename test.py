@@ -30,7 +30,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--data_path",
-    default="data/final_question.csv",
+    default="data/final.csv",
     type=str,
 )
 parser.add_argument(
@@ -58,23 +58,23 @@ docs = col.tolist()
 
 docs = df["content"].tolist()
 
-# bm25_options = BM25Options().args
-# bm25_options.top_k = args.top_k_bm25
-# bm25_options.token_level = args.token_level
-# bm25_options.data_path = args.data_path
-# bm25_options.index_name = "bm25_index"
-# bm25_options.index_mapping = {
-#     "mappings": {
-#         "properties": {
-#             "chuong": {"type": "text"},
-#             "dieu": {"type": "text"},
-#             "content": {"type": "text"},
-#         }
-#     }
-# }
+bm25_options = BM25Options().args
+bm25_options.top_k = args.top_k_bm25
+bm25_options.token_level = args.token_level
+bm25_options.data_path = args.data_path
+bm25_options.index_name = "bm25_index"
+bm25_options.index_mapping = {
+    "mappings": {
+        "properties": {
+            "chuong": {"type": "text"},
+            "dieu": {"type": "text"},
+            "content": {"type": "text"},
+        }
+    }
+}
 
-# bm25 = BM25(bm25_options)
-# bm25.insert_data(bm25_options.index_name, args.data_path)
+bm25 = BM25(bm25_options)
+bm25.insert_data(bm25_options.index_name, args.data_path)
 dense_model.to(args.device)
 
 while True:
@@ -85,10 +85,10 @@ while True:
         continue
 
     print("***" * 30)
-    # bm25_results = bm25.search(
-    #     index_name=bm25_options.index_name,
-    #     search_query=query,
-    # )
+    bm25_results = bm25.search(
+        index_name=bm25_options.index_name,
+        search_query=query,
+    )
 
     # docs = [preprocess(doc["content"]) for doc in bm25_results]
 
@@ -96,6 +96,10 @@ while True:
     start = time.time()
 
     list_relevant = dense_model(query, docs)
+
+    if list_relevant is None:
+        print("Không tìm thấy tài liệu nào phù hợp.")
+        continue
 
     end = time.time()
 
