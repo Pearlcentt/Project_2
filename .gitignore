@@ -176,3 +176,11 @@ cython_debug/
 model/
 
 secrets.json
+
+web/node_modules/
+web/package-lock.json
+web/.env
+
+
+api/.env
+
