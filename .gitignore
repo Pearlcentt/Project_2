@@ -182,5 +182,13 @@ web/package-lock.json
 web/.env
 
 
-api/.env
+server/.env
+
+server/data/processed/
+server/data/raw/
+
+server/data/extract_ngoai_ngu.py
+server/data/extract_quy_che.py
+server/data/merge.py
+
 
