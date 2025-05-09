@@ -3,7 +3,7 @@ import AuthForm from '../components/AuthForm';
 
 const LoginPage = () => {
   return (
-    <div className="login-page">
+    <div className="min-h-screen bg-gray-100">
       <AuthForm />
     </div>
   );

@@ -1,10 +1,19 @@
 import axios from 'axios';
 
-export const callGemini = async (input, token) => {
-  const res = await axios.post(
-    'https://api.gemini.google.com/generate',
-    { input },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return res.data.output;
+const API = process.env.REACT_APP_GEMINI_API_URL || 'http://localhost:8000/api/gemini';
+
+export const callGemini = async (input, token = null) => {
+  try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    
+    const res = await axios.post(
+      API,
+      { query: input },
+      { headers }
+    );
+    return res.data.output;
+  } catch (error) {
+    console.error('Error calling Gemini:', error);
+    throw error;
+  }
 };

@@ -2,19 +2,19 @@ import React from 'react';
 
 const MessageBubble = ({ sender, text }) => {
   const isUser = sender === 'user';
+  
   return (
-    <div
-      style={{
-        textAlign: isUser ? 'right' : 'left',
-        margin: '8px 0',
-        padding: '8px',
-        backgroundColor: isUser ? '#dcf8c6' : '#f1f0f0',
-        borderRadius: '8px',
-        maxWidth: '70%',
-        alignSelf: isUser ? 'flex-end' : 'flex-start'
-      }}
-    >
-      <strong>{isUser ? 'You' : 'AI'}:</strong> {text}
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
+      <div
+        className={`max-w-3/4 p-3 rounded-lg ${
+          isUser
+            ? 'bg-blue-600 text-white rounded-br-none'
+            : 'bg-gray-200 text-gray-800 rounded-bl-none'
+        }`}
+      >
+        <p className="text-sm font-bold mb-1">{isUser ? 'You' : 'HUST Assistant'}</p>
+        <p className="whitespace-pre-wrap">{text}</p>
+      </div>
     </div>
   );
 };

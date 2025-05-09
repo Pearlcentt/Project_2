@@ -178,6 +178,7 @@ model/
 secrets.json
 
 web/node_modules/
+web/build/
 web/package-lock.json
 web/.env
 
