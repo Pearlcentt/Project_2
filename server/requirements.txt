@@ -1,8 +1,14 @@
 fastapi
 uvicorn
-requests
+python-jose
+passlib
 python-dotenv
 elasticsearch
 pandas
-pdfplumber
-tqdm
+transformers
+torch
+pyvi
+google-generativeai
+python-multipart
+pydantic
+pydantic[email]
