@@ -1,4 +1,3 @@
-# app/core/utils/load_model.py
 import torch
 from transformers import RobertaConfig
 from app.core.dense.dense_embedding import DenseEmbedding

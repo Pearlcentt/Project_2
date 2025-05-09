@@ -24,13 +24,27 @@ class User(UserBase):
     hashed_password: str = Field(..., description="Hashed password")
     disabled: bool = Field(False, description="Whether the user is disabled")
 
+    class Config:
+        orm_mode = True
+
+
+class UserPublic(BaseModel):
+    """
+    Public user information without sensitive data.
+    """
+    email: EmailStr
+    name: Optional[str] = None
+    
+    class Config:
+        orm_mode = True
+
 
 class Token(BaseModel):
     """
     Model for JWT token response.
     """
     access_token: str = Field(..., description="JWT access token")
-    token_type: str = Field(..., description="Token type")
+    token_type: str = Field(..., description="Token type, typically 'bearer'")
 
 
 class UserResponse(BaseModel):
@@ -39,3 +53,6 @@ class UserResponse(BaseModel):
     """
     user: User = Field(..., description="User information")
     token: str = Field(..., description="JWT access token")
+    
+    class Config:
+        orm_mode = True

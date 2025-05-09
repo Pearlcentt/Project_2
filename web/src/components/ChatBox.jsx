@@ -19,7 +19,6 @@ const ChatBox = () => {
   
   return (
     <div className="flex h-full">
-      {/* Main chat area */}
       <div className={`flex-1 flex flex-col h-full ${showDocs ? 'w-2/3' : 'w-full'}`}>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.length === 0 ? (
@@ -44,13 +43,11 @@ const ChatBox = () => {
         </div>
       </div>
       
-      {/* Document panel - only visible when showDocs is true */}
       {showDocs && <DocumentPanel />}
     </div>
   );
 };
 
-// EmptyState component - shown when there are no messages
 const EmptyState = () => {
   return (
     <div className="flex flex-col items-center justify-center h-64 text-center p-6">
