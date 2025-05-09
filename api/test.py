@@ -3,8 +3,10 @@
 import torch
 import pandas as pd
 import argparse
+import colorama
 from transformers import AutoTokenizer, RobertaConfig
 from app.dense.dense_embedding import DenseEmbedding
+from FlagEmbedding import FlagReranker
 import time
 
 from app.BM25.bm25 import BM25
@@ -39,7 +41,8 @@ parser.add_argument(
     type=str,
 )
 args = parser.parse_args()
-args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+args.device = "cuda" if torch.cuda.is_available() else "cpu"
+print("Sử dụng thiết bị: ", args.device)
 args.model_name_or_path = "app/model"
 
 model_config = RobertaConfig.from_pretrained(
@@ -81,6 +84,8 @@ bm25 = BM25(bm25_options)
 bm25.insert_data(bm25_options.index_name, args.data_path)
 dense_model.to(args.device)
 
+reranker = FlagReranker("namdp-ptit/ViRanker", use_fp16=True, devices=args.device)
+
 while True:
     query = input("Nhập câu truy vấn: ")
     if query == "exit":
@@ -90,29 +95,45 @@ while True:
 
     query = preprocess(query)
 
-    print("***" * 30)
+    colorama.init()
+    colorama.ansi.autoreset = True
+
+    print(colorama.Fore.BLUE + "***" * 30 + colorama.Fore.RESET)
     bm25_results = bm25.search(
         index_name=bm25_options.index_name,
         search_query=query,
     )
 
-    # docs = [preprocess(doc["content"]) for doc in bm25_results]
+    docs = [preprocess(doc["content"]) for doc in bm25_results]
+
+    if not docs:
+        print("Không tìm thấy tài liệu nào phù hợp.")
+        continue
 
     dense_model.eval()
     start = time.time()
 
     list_relevant = dense_model(query, docs)
 
-    if list_relevant is None:
+    if not list_relevant:
         print("Không tìm thấy tài liệu nào phù hợp.")
         continue
+    elif len(list_relevant) > args.top_k_dense:
+        list_relevant = list_relevant[: args.top_k_dense]
+    pairs = [[query, preprocess(doc, remove_nl=True)] for doc in list_relevant]
+    scores = reranker.compute_score(pairs)
+
+    scores_docs = zip(scores, list_relevant)
+
+    sorted_scores_docs = sorted(scores_docs, key=lambda x: x[0], reverse=True)
 
     end = time.time()
 
-    for doc in list_relevant:
-        print(doc)
+    for score, doc in sorted_scores_docs:
+        print("Điểm: ", score)
+        print("Tài liệu: ", doc)
         print("===" * 30)
 
     print("Thời gian thực hiện: ", end - start, " giây")
 
-    print("***" * 30)
+    print(colorama.Fore.BLUE + "***" * 30 + colorama.Fore.RESET)

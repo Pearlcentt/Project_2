@@ -30,7 +30,7 @@ def process_and_tokenize(text, tokenizer, max_length):
     cls_token = tokenizer.cls_token
     pas_token_id = tokenizer.pad_token_id
 
-    text = preprocess(text)
+    text = preprocess(text, remove_nl=True)
 
     text = tokenize(text)
 

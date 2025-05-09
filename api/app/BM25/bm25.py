@@ -82,7 +82,7 @@ class BM25:
                     "id": chunk["id"],
                     "chuong": chunk["chapter"],
                     "dieu": chunk["section"],
-                    "content": chunk["content"],
+                    "content": chunk["content_full"],
                 },
             }
             actions.append(doc)
@@ -114,6 +114,15 @@ class BM25:
             print(f"Index '{index_name}' created.")
 
         df = pd.read_csv(data_path, encoding="utf-8-sig")
+        df["content_full"] = (
+            df["from"]
+            + "\n"
+            + df["chapter"]
+            + "\n"
+            + df["section"]
+            + "\n"
+            + df["content"]
+        )
         chunks = df.to_dict(orient="records")
 
         self._bulk_insert_to_elasticsearch(index_name, chunks)
