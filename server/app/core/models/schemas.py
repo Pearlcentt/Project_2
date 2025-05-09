@@ -7,8 +7,31 @@ class QueryModel(BaseModel):
 
 
 class DocumentResponse(BaseModel):
+    """
+    Response model for document retrieval.
+    """
     documents: List[str] = Field(..., description="List of relevant document contents")
 
 
 class GeminiResponse(BaseModel):
+    """
+    Response model for Gemini API calls.
+    """
     output: str = Field(..., description="Generated response from Gemini")
+
+
+class LoginRequest(BaseModel):
+    """
+    Request model for user login.
+    """
+    email: EmailStr = Field(..., description="User's email address")
+    password: str = Field(..., description="User's password")
+
+
+class SignupRequest(BaseModel):
+    """
+    Request model for user signup.
+    """
+    email: EmailStr = Field(..., description="User's email address")
+    password: str = Field(..., description="User's password", min_length=8)
+    name: Optional[str] = Field(None, description="User's full name")

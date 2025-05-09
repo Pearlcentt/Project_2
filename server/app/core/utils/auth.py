@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import HTTPException, status
-from app.core.models.user import User
+from app.core.models.user import User, UserResponse
 import os
 from dotenv import load_dotenv
 
@@ -11,28 +11,28 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-fake_users_db = {}
+fake_users_db: Dict[str, Dict] = {}
 
 
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verify a password against a hash.
     """
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password):
+def get_password_hash(password: str) -> str:
     """
     Generate password hash.
     """
     return pwd_context.hash(password)
 
 
-def get_user_by_email(email: str):
+def get_user_by_email(email: str) -> Optional[User]:
     """
     Get user by email from the database.
     """
@@ -42,19 +42,19 @@ def get_user_by_email(email: str):
     return None
 
 
-def authenticate_user(email: str, password: str):
+def authenticate_user(email: str, password: str) -> Optional[User]:
     """
     Authenticate a user based on email and password.
     """
     user = get_user_by_email(email)
     if not user:
-        return False
+        return None
     if not verify_password(password, user.hashed_password):
-        return False
+        return None
     return user
 
 
-def create_user(user_data):
+def create_user(user_data) -> User:
     """
     Create a new user in the database.
     """
@@ -69,7 +69,7 @@ def create_user(user_data):
     return User(**user_dict)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """
     Create a JWT token.
     """
@@ -86,7 +86,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-def verify_token(token: str):
+def verify_token(token: str) -> Optional[dict]:
     """
     Verify a JWT token and extract payload.
     """
@@ -100,7 +100,7 @@ def verify_token(token: str):
         return None
 
 
-def get_current_user(token: str):
+def get_current_user(token: str) -> Optional[User]:
     """
     Get current user from a token.
     """
