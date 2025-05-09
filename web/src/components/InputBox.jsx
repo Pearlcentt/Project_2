@@ -15,18 +15,14 @@ const InputBox = () => {
     setIsLoading(true);
     
     try {
-      // Get auth token if available
       const token = localStorage.getItem('token');
       
-      // First, fetch relevant documents from backend
       const docs = await fetchRelevantDocs(input, token);
       setRetrievedDocs(docs);
       
-      // Then send the query and context to Gemini
       const prompt = `Context:\n${docs.join('\n')}\n\nQuery:\n${input}`;
       const reply = await callGemini(prompt, token);
       
-      // Add Gemini's response to the chat
       addMessage({ sender: 'bot', text: reply });
     } catch (err) {
       console.error('Error processing message:', err);
@@ -69,7 +65,6 @@ const InputBox = () => {
   );
 };
 
-// Loading spinner component
 const LoadingSpinner = () => {
   return (
     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
