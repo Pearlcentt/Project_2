@@ -1,6 +1,6 @@
 from elasticsearch import Elasticsearch
 from typing import List, Dict, Union
-from BM25.options import BM25Options
+from app.BM25.options import BM25Options
 import pandas as pd
 
 

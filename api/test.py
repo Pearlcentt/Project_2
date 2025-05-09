@@ -4,16 +4,16 @@ import torch
 import pandas as pd
 import argparse
 from transformers import AutoTokenizer, RobertaConfig
-from dense.dense_embedding import DenseEmbedding
+from app.dense.dense_embedding import DenseEmbedding
 import time
 
-from BM25.bm25 import BM25
-from BM25.options import BM25Options
-from dataset.data_utils import preprocess
+from app.BM25.bm25 import BM25
+from app.BM25.options import BM25Options
+from app.dataset.data_utils import preprocess
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--top_k_bm25", default=5, type=int, help="Số lượng tài liệu lấy từ BM25"
+    "--top_k_bm25", default=15, type=int, help="Số lượng tài liệu lấy từ BM25"
 )
 parser.add_argument(
     "--top_k_dense", default=5, type=int, help="Số lượng tài liệu lấy từ mô hình dense"
@@ -30,7 +30,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--data_path",
-    default="data/final.csv",
+    default="app/data/final.csv",
     type=str,
 )
 parser.add_argument(
@@ -40,7 +40,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-args.model_name_or_path = "model"
+args.model_name_or_path = "app/model"
 
 model_config = RobertaConfig.from_pretrained(
     args.model_name_or_path, finetuning_task=args.token_level
@@ -53,6 +53,10 @@ df = pd.read_csv(args.data_path, encoding="utf-8")
 df = df.dropna()
 df = df.drop_duplicates(subset=["content"])
 df = df.reset_index(drop=True)
+df["content"] = (
+    df["from"] + "\n" + df["chapter"] + "\n" + df["section"] + "\n" + df["content"]
+)
+
 col = df["content"].apply(lambda x: preprocess(x, False))
 docs = col.tolist()
 
@@ -83,6 +87,8 @@ while True:
         break
     if query == "":
         continue
+
+    query = preprocess(query)
 
     print("***" * 30)
     bm25_results = bm25.search(

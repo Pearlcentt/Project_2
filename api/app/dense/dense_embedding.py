@@ -8,8 +8,8 @@ from transformers import (
     RobertaModel,
 )
 from pyvi.ViTokenizer import tokenize
-from dense.modules import Pooler, SimilarityFunction
-from dataset.data_utils import preprocess
+from app.dense.modules import Pooler, SimilarityFunction
+from app.dataset.data_utils import preprocess
 
 
 class DenseEmbedding(RobertaPreTrainedModel):
