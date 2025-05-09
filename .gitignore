@@ -176,3 +176,20 @@ cython_debug/
 model/
 
 secrets.json
+
+web/node_modules/
+web/build/
+web/package-lock.json
+web/.env
+
+
+server/.env
+
+server/data/processed/
+server/data/raw/
+
+server/data/extract_ngoai_ngu.py
+server/data/extract_quy_che.py
+server/data/merge.py
+
+
