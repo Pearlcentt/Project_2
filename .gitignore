@@ -193,3 +193,4 @@ server/data/extract_quy_che.py
 server/data/merge.py
 
 
+.dotenv

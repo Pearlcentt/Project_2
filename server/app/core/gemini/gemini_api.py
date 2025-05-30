@@ -11,19 +11,22 @@ if not GOOGLE_API_KEY:
 
 genai.configure(api_key=GOOGLE_API_KEY)
 
+
 def call_gemini(prompt: str) -> str:
     try:
-        model = genai.GenerativeModel('gemini-2.0-flash-thinking-exp-01-21')  # Or 'gemini-1.5-pro', etc.
+        model = genai.GenerativeModel(
+            "gemini-2.0-flash-thinking-exp-01-21"
+        )  # Or 'gemini-1.5-pro', etc.
         response = model.generate_content(prompt)
         return response.text
         # client = genai.Client(
         #     api_key=GOOGLE_API_KEY,
-        # )   
+        # )
 
         # model = "gemini-2.0-flash-thinking-exp-01-21"
-        
+
         # response = model.generate_content(prompt)
-        
+
         # return response.text
     except Exception as e:
         print(f"Error calling Gemini API: {e}")
@@ -31,8 +34,8 @@ def call_gemini(prompt: str) -> str:
 
 
 def format_prompt_with_context(query: str, relevant_docs: List[str]) -> str:
-    context = "\n\n".join([f"Document {i+1}:\n{doc}" for i, doc in enumerate(relevant_docs)])
-    
+    context = "\n\n".join([f"\n{doc}" for i, doc in enumerate(relevant_docs)])
+
     prompt = f"""
     Bạn là một trợ lý AI thông minh và cực kỳ đáng tin cậy. Nhiệm vụ sống còn của bạn là cung cấp câu trả lời có tính *CHÍNH XÁC TUYỆT ĐỐI* và phải *HOÀN TOÀN CÓ THỂ KIỂM CHỨNG* được từ nguồn thông tin đã cho.
 
