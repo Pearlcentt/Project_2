@@ -58,7 +58,7 @@ const EmptyState = () => {
       </div>
       <h3 className="text-xl font-semibold mb-2">Welcome to HUST Assistant</h3>
       <p className="text-gray-600 mb-4 max-w-md">
-        Ask questions about your documents and I'll help you find answers using relevant information from your knowledge base.
+        Ask questions about your documents and I'll help you find answers using relevant information from HUST knowledge base.
       </p>
     </div>
   );

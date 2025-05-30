@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { ChatContext } from '../context/ChatContext';
-import { fetchRelevantDocs, callGemini } from '../services/backendService';
+import { askWithRag } from '../services/backendService';
 
 const InputBox = () => {
   const [input, setInput] = useState('');
@@ -17,13 +17,10 @@ const InputBox = () => {
     try {
       const token = localStorage.getItem('token');
       
-      const docs = await fetchRelevantDocs(input, token);
-      setRetrievedDocs(docs);
+      const response = await askWithRag(input, token);
       
-      const prompt = `Context:\n${docs.join('\n')}\n\nQuery:\n${input}`;
-      const reply = await callGemini(prompt, token);
-      
-      addMessage({ sender: 'bot', text: reply });
+      setRetrievedDocs(response.documents || []);
+      addMessage({ sender: 'bot', text: response.output || 'Sorry, I could not generate a response.' });
     } catch (err) {
       console.error('Error processing message:', err);
       addMessage({

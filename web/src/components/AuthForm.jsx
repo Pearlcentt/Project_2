@@ -18,6 +18,7 @@ const AuthForm = () => {
     try {
       const res = isLogin ? await login(formData) : await signup(formData);
       localStorage.setItem('token', res.data.token);
+      console.log("Token set:", localStorage.getItem('token'));
       navigate('/chat');
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong.');

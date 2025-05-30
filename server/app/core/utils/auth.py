@@ -1,9 +1,17 @@
 from datetime import datetime, timedelta
-from typing import Optional, Dict
+from datetime import datetime, timedelta
+from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import HTTPException, status
-from app.core.models.user import User, UserResponse
+from fastapi import HTTPException, status, Depends
+from sqlalchemy.orm import Session
+
+from app.core.utils.user import UserCreate, UserResponse, Token
+from app.core.models.schemas import SignupRequest
+from app.db.database import get_db
+from app.db.models import User as DBUser
+from fastapi.security import OAuth2PasswordBearer
+
 import os
 from dotenv import load_dotenv
 
@@ -14,8 +22,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-fake_users_db: Dict[str, Dict] = {}
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/token")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -32,21 +39,18 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def get_user_by_email(email: str) -> Optional[User]:
+def get_user_by_email(db: Session, email: str) -> Optional[DBUser]:
     """
     Get user by email from the database.
     """
-    if email in fake_users_db:
-        user_dict = fake_users_db[email]
-        return User(**user_dict)
-    return None
+    return db.query(DBUser).filter(DBUser.email == email).first()
 
 
-def authenticate_user(email: str, password: str) -> Optional[User]:
+def authenticate_user(db: Session, email: str, password: str) -> Optional[DBUser]:
     """
     Authenticate a user based on email and password.
     """
-    user = get_user_by_email(email)
+    user = get_user_by_email(db, email)
     if not user:
         return None
     if not verify_password(password, user.hashed_password):
@@ -54,19 +58,21 @@ def authenticate_user(email: str, password: str) -> Optional[User]:
     return user
 
 
-def create_user(user_data) -> User:
+def create_user(db: Session, user_data: SignupRequest) -> DBUser:
     """
     Create a new user in the database.
     """
     hashed_password = get_password_hash(user_data.password)
-    user_dict = {
-        "email": user_data.email,
-        "hashed_password": hashed_password,
-        "name": user_data.name,
-        "disabled": False
-    }
-    fake_users_db[user_data.email] = user_dict
-    return User(**user_dict)
+    db_user = DBUser(
+        email=user_data.email,
+        hashed_password=hashed_password,
+        name=user_data.name or "",
+        disabled=False
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -100,15 +106,10 @@ def verify_token(token: str) -> Optional[dict]:
         return None
 
 
-def get_current_user(token: str) -> Optional[User]:
-    """
-    Get current user from a token.
-    """
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> Optional[DBUser]:
     payload = verify_token(token)
-    if payload is None:
-        return None
-    
     email: str = payload.get("sub")
-    user = get_user_by_email(email)
-    
+    if email is None:
+        return None
+    user = get_user_by_email(db, email)
     return user
