@@ -2,6 +2,8 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
+COPY ./data/final.csv /app/data/
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*

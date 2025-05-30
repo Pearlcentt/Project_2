@@ -3,6 +3,7 @@ from typing import List, Dict, Union
 from app.core.bm25.options import BM25Options
 import pandas as pd
 import time
+import os
 
 
 class BM25:
@@ -20,11 +21,18 @@ class BM25:
         self.args = args
         self.es = Elasticsearch(self.args.es_host)
 
-    def ping(self):
+    def ping(self, retries=5, delay=5):
         """
-        Check if the elasticsearch server is reachable.
+        Check if the elasticsearch server is reachable with retries.
         """
-        return self.es.ping()
+        for i in range(retries):
+            try:
+                if self.es.ping():
+                    return True
+            except Exception as e:
+                print(f"Elasticsearch ping failed (attempt {i+1}/{retries}): {e}")
+            time.sleep(delay)
+        return False
 
     def search(
         self, index_name: str, search_query: str
@@ -114,7 +122,7 @@ class BM25:
             self.es.indices.create(index=index_name, body=index_mapping)
             print(f"Index '{index_name}' created.")
 
-        df = pd.read_csv(data_path, encoding="utf-8-sig")
+        df = pd.read_csv(os.getenv("BM25_DATA_PATH"), encoding="utf-8-sig")
         chunks = df.to_dict(orient="records")
 
         self._bulk_insert_to_elasticsearch(index_name, chunks)

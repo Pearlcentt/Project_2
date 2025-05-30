@@ -25,7 +25,7 @@ class User(UserBase):
     disabled: bool = Field(False, description="Whether the user is disabled")
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class UserPublic(BaseModel):
@@ -36,7 +36,7 @@ class UserPublic(BaseModel):
     name: Optional[str] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Token(BaseModel):
@@ -55,4 +55,4 @@ class UserResponse(BaseModel):
     token: str = Field(..., description="JWT access token")
     
     class Config:
-        orm_mode = True
+        from_attributes = True

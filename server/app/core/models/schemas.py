@@ -18,6 +18,7 @@ class GeminiResponse(BaseModel):
     Response model for Gemini API calls.
     """
     output: str = Field(..., description="Generated response from Gemini")
+    documents: List[str] = Field(default_factory=list, description="List of relevant document contents")
 
 
 class LoginRequest(BaseModel):

@@ -1,7 +1,7 @@
 // src/services/backendService.js
 // This service handles API communication with your FastAPI backend
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_URL = 'http://localhost:8000/api';
 
 /**
  * Fetches relevant documents from the backend based on user query
@@ -61,6 +61,40 @@ export const callGemini = async (input, token = null) => {
     return data.output || 'Sorry, I could not generate a response.';
   } catch (error) {
     console.error('Error calling Gemini:', error);
+    throw error;
+  }
+};
+
+/**
+ * Ask a question with RAG (Retrieval-Augmented Generation)
+ * This will retrieve relevant documents and generate an answer
+ * @param {string} query - The user's question
+ * @param {string} token - Authentication token
+ * @returns {Promise<Object>} - Response with generated answer and documents
+ */
+export const askWithRag = async (query, token) => {
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+
+    console.log("Token used:", token);
+    
+    const response = await fetch(`${API_URL}/ask`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ query })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Error with RAG: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error with RAG:', error);
     throw error;
   }
 };
